@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "../../include/csrc/core/DeviceType.h"
+#include "DeviceType.h"
 
 
 namespace hamster {
