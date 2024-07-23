@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include "StringUtil.h"
+
 namespace hamster {
 
 /// The primary ATen error class.
