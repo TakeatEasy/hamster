@@ -68,4 +68,13 @@ struct SourceLocation {
 
 std::ostream& operator<<(std::ostream& out, const SourceLocation& loc);
 
+inline int stoi(const std::string& str) {
+  std::stringstream ss;
+  int n = 0;
+  ss << str;
+  ss >> n;
+  return n;
+}
+
+
 } // namespace hamster
