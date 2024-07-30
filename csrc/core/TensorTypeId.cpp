@@ -1,11 +1,10 @@
 #include "TensorTypeId.h"
-#include <sstream>
+#include "../utils/string_utils.h"
 
+namespace c10 {
 
-namespace hamster {
-std::ostream& operator<<(std::ostream& str, hamster::TensorTypeId rhs) {
-std::ostringstream os;
-os << rhs.underlyingId();
-  return str << os.str();
+std::ostream& operator<<(std::ostream& str, c10::TensorTypeId rhs) {
+  return str << c10::to_string(rhs.underlyingId());
 }
-} // namespace hamster
+
+} // namespace c10

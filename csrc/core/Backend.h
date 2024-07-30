@@ -7,7 +7,8 @@
 
 #include <stdexcept>
 
-namespace hamster {
+namespace c10 {
+
 /**
  * This legacy enum class defines the set of backends supported by
  * old school, code generated Type-based ATen.  The reason we are
@@ -212,5 +213,4 @@ static inline const char* toString(Backend b) {
   }
 }
 
-
-} // namespace hamster
+} // namespace c10

@@ -1,12 +1,12 @@
 #pragma once
 
-#include <iostream>
-
 #include "Backend.h"
 #include "../utils/Exception.h"
 
-namespace hamster {
-enum class Layout : int_8 {Strided, Sparse};
+#include <iostream>
+
+namespace c10 {
+enum class Layout : int8_t { Strided, Sparse };
 
 constexpr auto kStrided = Layout::Strided;
 constexpr auto kSparse = Layout::Sparse;
@@ -33,4 +33,4 @@ inline std::ostream& operator<<(std::ostream& stream, at::Layout layout) {
   }
 }
 
-} // namespace hamster
+} // namespace c10

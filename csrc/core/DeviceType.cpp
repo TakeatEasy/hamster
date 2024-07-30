@@ -1,7 +1,8 @@
 #include "DeviceType.h"
 #include "../utils/Exception.h"
 
-namespace hamster {
+namespace c10 {
+
 std::string DeviceTypeName(DeviceType d, bool lower_case) {
   switch (d) {
     // I considered instead using ctype::tolower to lower-case the strings
@@ -10,6 +11,18 @@ std::string DeviceTypeName(DeviceType d, bool lower_case) {
       return lower_case ? "cpu" : "CPU";
     case DeviceType::CUDA:
       return lower_case ? "cuda" : "CUDA";
+    case DeviceType::OPENGL:
+      return lower_case ? "opengl" : "OPENGL";
+    case DeviceType::OPENCL:
+      return lower_case ? "opencl" : "OPENCL";
+    case DeviceType::MKLDNN:
+      return lower_case ? "mkldnn" : "MKLDNN";
+    case DeviceType::IDEEP:
+      return lower_case ? "ideep" : "IDEEP";
+    case DeviceType::HIP:
+      return lower_case ? "hip" : "HIP";
+    case DeviceType::FPGA:
+      return lower_case ? "fpga" : "FPGA";
     default:
       AT_ERROR(
           "Unknown device: ",
@@ -34,6 +47,12 @@ bool isValidDeviceType(DeviceType d) {
   switch (d) {
     case DeviceType::CPU:
     case DeviceType::CUDA:
+    case DeviceType::OPENGL:
+    case DeviceType::OPENCL:
+    case DeviceType::MKLDNN:
+    case DeviceType::IDEEP:
+    case DeviceType::HIP:
+    case DeviceType::FPGA:
       return true;
     default:
       return false;
@@ -45,4 +64,4 @@ std::ostream& operator<<(std::ostream& stream, DeviceType type) {
   return stream;
 }
 
-} // namespace hamster
+} // namespace c10

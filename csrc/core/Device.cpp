@@ -1,3 +1,7 @@
+#include "Device.h"
+#include "../utils/macros/Macros.h"
+#include "../utils/Exception.h"
+
 #include <algorithm>
 #include <array>
 #include <exception>
@@ -6,16 +10,17 @@
 #include <tuple>
 #include <vector>
 
-#include "Device.h"
-#include "../utils/Macros.h"
-#include "../utils/Exception.h"
-
-namespace hamster {
+namespace c10 {
 namespace {
-    DeviceType parse_type(const std::string& device_string) {
+DeviceType parse_type(const std::string& device_string) {
   static const std::array<std::pair<std::string, DeviceType>, 7> types = {{
       {"cpu", DeviceType::CPU},
       {"cuda", DeviceType::CUDA},
+      {"mkldnn", DeviceType::MKLDNN},
+      {"opengl", DeviceType::OPENGL},
+      {"opencl", DeviceType::OPENCL},
+      {"ideep", DeviceType::IDEEP},
+      {"hip", DeviceType::HIP},
   }};
   auto device = std::find_if(
       types.begin(),
@@ -29,7 +34,7 @@ namespace {
   AT_ERROR(
       "Expected one of cpu, cuda, mkldnn, opengl, opencl, ideep, or hip device type at start of device string: ", device_string);
 }
-}
+} // namespace
 
 // `std::regex` is still in a very incomplete state in GCC 4.8.x,
 // so we have to do our own parsing, like peasants.
@@ -68,7 +73,7 @@ Device::Device(const std::string& device_string) : Device(Type::CPU) {
   }
   std::string device_index = device_string.substr(index + 1);
   try {
-    index_ = hamster::stoi(device_index);
+    index_ = c10::stoi(device_index);
   } catch (const std::exception&) {
     AT_ERROR(
         "Could not parse device index '",
@@ -87,4 +92,4 @@ std::ostream& operator<<(std::ostream& stream, const Device& device) {
   return stream;
 }
 
-} // namespace hamster
+} // namespace c10

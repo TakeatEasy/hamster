@@ -1,4 +1,10 @@
-namespace hamster {
+#pragma once
+
+#include "macros/Macros.h"
+#include <functional>
+#include <utility>
+
+namespace c10 {
 
 /**
  * This template simplifies generation of simple classes that wrap an id
@@ -11,7 +17,7 @@ namespace hamster {
  *
  * Then in the global top level namespace:
  *
- *   HAMSTER_DEFINE_HASH_FOR_IDWRAPPER(MyIdType);
+ *   C10_DEFINE_HASH_FOR_IDWRAPPER(MyIdType);
  *
  * That's it - equality operators and hash functions are automatically defined
  * for you, given the underlying type supports it.
@@ -58,9 +64,9 @@ class IdWrapper {
   underlying_type id_;
 };
 
-} // namespace hamster
+} // namespace c10
 
-#define HAMSTER_DEFINE_HASH_FOR_IDWRAPPER(ClassName)\
+#define C10_DEFINE_HASH_FOR_IDWRAPPER(ClassName)\
   namespace std {                               \
   template <>                                   \
   struct hash<ClassName> {                      \

@@ -4,7 +4,9 @@
 #include <cstring>
 #include <string>
 
-namespace hamster {
+namespace c10 {
+
+namespace detail {
 
 std::string StripBasename(const std::string& full_path) {
   const char kSeparator = '/';
@@ -15,6 +17,8 @@ std::string StripBasename(const std::string& full_path) {
     return full_path;
   }
 }
+
+} // namespace detail
 
 std::ostream& operator<<(std::ostream& out, const SourceLocation& loc) {
   out << loc.function << " at " << loc.file << ":" << loc.line;
@@ -36,4 +40,4 @@ size_t ReplaceAll(std::string& s, const char* from, const char* to) {
   return numReplaced;
 }
 
-} // namespace hamster
+} // namespace c10

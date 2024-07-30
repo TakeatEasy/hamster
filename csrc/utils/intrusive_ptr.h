@@ -1,11 +1,11 @@
 #pragma once
 
-
-#include <atomic>
-#include <cstddef>
-
-#include "Exception.h"
 #include "C++17.h"
+#include "Exception.h"
+#include <atomic>
+#include <stdexcept>
+
+namespace c10 {
 
 /**
  * intrusive_ptr<T> is an alternative to shared_ptr<T> that has better
@@ -32,9 +32,7 @@
 // tells us if the object was allocated by us.  If it wasn't, no
 // intrusive_ptr for you!
 
-namespace hamster {
-
-class intrusive_ptr_target {
+class C10_API intrusive_ptr_target {
   // Note [Weak references for intrusive refcounting]
   // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Here's the scheme:
@@ -57,16 +55,15 @@ class intrusive_ptr_target {
   //    atomically increment the use count, if it is greater than 0.
   //    If it is not, you must report that the storage is dead.
   //
-
-  mutable std::atomic<int> refcount_;
-  mutable std::atomic<int> weakcount_;
+  mutable std::atomic<size_t> refcount_;
+  mutable std::atomic<size_t> weakcount_;
 
   template <typename T, typename NullType>
   friend class intrusive_ptr;
   template <typename T, typename NullType>
   friend class weak_intrusive_ptr;
 
-protected:
+ protected:
   // protected destructor. We never want to destruct intrusive_ptr_target*
   // directly.
   virtual ~intrusive_ptr_target() {
@@ -89,7 +86,16 @@ protected:
 #pragma GCC diagnostic pop
   }
 
-private:
+  constexpr intrusive_ptr_target() noexcept : refcount_(0), weakcount_(0) {}
+
+  // intrusive_ptr_target supports copy and move: but refcount and weakcount don't
+  // participate (since they are intrinsic properties of the memory location)
+  intrusive_ptr_target(intrusive_ptr_target&& other) noexcept : intrusive_ptr_target() {}
+  intrusive_ptr_target& operator=(intrusive_ptr_target&& other) noexcept { return *this; }
+  intrusive_ptr_target(const intrusive_ptr_target& other) noexcept : intrusive_ptr_target() {}
+  intrusive_ptr_target& operator=(const intrusive_ptr_target& other) noexcept { return *this; }
+
+ private:
   /**
    * This is called when refcount reaches zero.
    * You can override this to release expensive resources.
@@ -123,13 +129,14 @@ TTarget* assign_ptr_(TTarget* rhs) {
     return rhs;
   }
 }
-} //namespace detail
+} // namespace detail
 
 template <class TTarget, class NullType>
 class weak_intrusive_ptr;
 
-template<class TTarget,
-          class NullType = detail::intrusive_target_default_null_type<TTarget>>
+template <
+    class TTarget,
+    class NullType = detail::intrusive_target_default_null_type<TTarget>>
 class intrusive_ptr final {
  private:
 //  the following static assert would be nice to have but it requires
@@ -148,7 +155,7 @@ class intrusive_ptr final {
   static_assert(
       std::is_same<TTarget*, decltype(NullType::singleton())>::value,
       "NullType::singleton() must return a element_type* pointer");
-  
+
   TTarget* target_;
 
   template <class TTarget2, class NullType2>
@@ -172,7 +179,7 @@ class intrusive_ptr final {
       auto weak_count = --target_->weakcount_;
       // justification for const_cast: release_resources is basically a destructor
       // and a destructor always mutates the object, even for const objects.
-      const_cast<hamster::guts::remove_const_t<TTarget>*>(target_)->release_resources();
+      const_cast<c10::guts::remove_const_t<TTarget>*>(target_)->release_resources();
       if (weak_count == 0) {
         delete target_;
       }
@@ -185,6 +192,7 @@ class intrusive_ptr final {
   // pointers except from inside the make_intrusive() and
   // weak_intrusive_ptr::lock() implementations
   explicit intrusive_ptr(TTarget* target) noexcept : target_(target) {}
+
  public:
   using element_type = TTarget;
 
@@ -351,7 +359,7 @@ template <
     class TTarget,
     class NullType = detail::intrusive_target_default_null_type<TTarget>,
     class... Args>
-inline intrusive_ptr<TTarget, NullType> make_instrusive(Args&&... args) {
+inline intrusive_ptr<TTarget, NullType> make_intrusive(Args&&... args) {
   return intrusive_ptr<TTarget, NullType>::make(std::forward<Args>(args)...);
 }
 
@@ -388,7 +396,7 @@ template <
     typename TTarget,
     class NullType = detail::intrusive_target_default_null_type<TTarget>>
 class weak_intrusive_ptr final {
-   private:
+ private:
   static_assert(
       std::is_base_of<intrusive_ptr_target, TTarget>::value,
       "intrusive_ptr can only be used for classes that inherit from intrusive_ptr_target.");
@@ -408,7 +416,7 @@ class weak_intrusive_ptr final {
   template <class TTarget2, class NullType2>
   friend class weak_intrusive_ptr;
 
-void retain_() {
+  void retain_() {
     if (target_ != NullType::singleton()) {
       size_t new_weakcount = ++target_->weakcount_;
       AT_ASSERTM(
@@ -653,7 +661,6 @@ using weak_intrusive_ptr_target = intrusive_ptr_target;
 // have a weak raw pointer to the object.  ONLY call intrusive_ptr namespace
 // functions on strong pointers, and weak_intrusive_ptr namespace functions
 // on weak pointers.  If you mix it up, you may get an assert failure.
-
 namespace raw {
 
 namespace intrusive_ptr {
@@ -661,7 +668,7 @@ namespace intrusive_ptr {
   // WARNING: Unlike the reclaim() API, it is NOT valid to pass
   // NullType::singleton to this function
   inline void incref(intrusive_ptr_target* self) {
-    auto ptr = hamster::intrusive_ptr<intrusive_ptr_target>::reclaim(self);
+    auto ptr = c10::intrusive_ptr<intrusive_ptr_target>::reclaim(self);
     auto ptr_copy = ptr;
     ptr_copy.release();
     ptr.release();
@@ -671,22 +678,22 @@ namespace intrusive_ptr {
   // NullType::singleton to this function
   inline void decref(intrusive_ptr_target* self) {
     // Let it die
-    hamster::intrusive_ptr<intrusive_ptr_target>::reclaim(self);
+    c10::intrusive_ptr<intrusive_ptr_target>::reclaim(self);
     // NB: Caller still has 'self' pointer, but it's now invalid.
-    // If you want more safety, used the actual hamster::intrusive_ptr class
+    // If you want more safety, used the actual c10::intrusive_ptr class
   }
 
   template <typename T>
   inline T* make_weak(T* self) {
     // NB: 'this' is a strong pointer, but we return a weak pointer
-    auto ptr = hamster::intrusive_ptr<T>::reclaim(self);
-    hamster::weak_intrusive_ptr<T> wptr(ptr);
+    auto ptr = c10::intrusive_ptr<T>::reclaim(self);
+    c10::weak_intrusive_ptr<T> wptr(ptr);
     ptr.release();
     return wptr.release();
   }
 
   inline uint32_t use_count(intrusive_ptr_target* self) {
-    auto ptr = hamster::intrusive_ptr<intrusive_ptr_target>::reclaim(self);
+    auto ptr = c10::intrusive_ptr<intrusive_ptr_target>::reclaim(self);
     auto r = ptr.use_count();
     ptr.release();
     return r;
@@ -697,7 +704,7 @@ namespace intrusive_ptr {
 namespace weak_intrusive_ptr {
 
   inline void incref(weak_intrusive_ptr_target* self) {
-    auto wptr = hamster::weak_intrusive_ptr<weak_intrusive_ptr_target>::reclaim(self);
+    auto wptr = c10::weak_intrusive_ptr<weak_intrusive_ptr_target>::reclaim(self);
     auto wptr_copy = wptr;
     wptr_copy.release();
     wptr.release();
@@ -705,14 +712,14 @@ namespace weak_intrusive_ptr {
 
   inline void decref(weak_intrusive_ptr_target* self) {
     // Let it die
-    hamster::weak_intrusive_ptr<intrusive_ptr_target>::reclaim(self);
+    c10::weak_intrusive_ptr<intrusive_ptr_target>::reclaim(self);
     // NB: You still "have" the 'self' pointer, but it's now invalid.
-    // If you want more safety, used the actual hamster::weak_intrusive_ptr class
+    // If you want more safety, used the actual c10::weak_intrusive_ptr class
   }
 
   template <typename T>
   inline T* lock(T* self) {
-    auto wptr = hamster::weak_intrusive_ptr<T>::reclaim(self);
+    auto wptr = c10::weak_intrusive_ptr<T>::reclaim(self);
     auto ptr = wptr.lock();
     wptr.release();
     return ptr.release();
@@ -720,7 +727,7 @@ namespace weak_intrusive_ptr {
 
   // This gives the STRONG refcount of a WEAK pointer
   inline uint32_t use_count(weak_intrusive_ptr_target* self) {
-    auto wptr = hamster::weak_intrusive_ptr<intrusive_ptr_target>::reclaim(self);
+    auto wptr = c10::weak_intrusive_ptr<intrusive_ptr_target>::reclaim(self);
     auto r = wptr.use_count();
     wptr.release();
     return r;
@@ -730,20 +737,20 @@ namespace weak_intrusive_ptr {
 
 } // namespace raw
 
-} // namespace hamster
+} // namespace c10
 
 namespace std {
 // To allow intrusive_ptr and weak_intrusive_ptr inside std::unordered_map or
 // std::unordered_set, we need std::hash
-template<class TTarget, class NullType>
-struct hash<hamster::intrusive_ptr<TTarget, NullType>> {
-  size_t operator()(const hamster::intrusive_ptr<TTarget, NullType>& x) const {
+template <class TTarget, class NullType>
+struct hash<c10::intrusive_ptr<TTarget, NullType>> {
+  size_t operator()(const c10::intrusive_ptr<TTarget, NullType>& x) const {
     return std::hash<TTarget*>()(x.get());
   }
 };
 template <class TTarget, class NullType>
-struct hash<hamster::weak_intrusive_ptr<TTarget, NullType>> {
-  size_t operator()(const hamster::weak_intrusive_ptr<TTarget, NullType>& x) const {
+struct hash<c10::weak_intrusive_ptr<TTarget, NullType>> {
+  size_t operator()(const c10::weak_intrusive_ptr<TTarget, NullType>& x) const {
     return std::hash<TTarget*>()(x._unsafe_get_target());
   }
 };

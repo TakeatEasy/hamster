@@ -1,4 +1,8 @@
-#pragma once
+#ifndef C10_UTIL_EXCEPTION_H_
+#define C10_UTIL_EXCEPTION_H_
+
+#include "macros/Macros.h"
+#include "StringUtil.h"
 
 #include <cstddef>
 #include <exception>
@@ -7,9 +11,11 @@
 #include <string>
 #include <vector>
 
-#include "StringUtil.h"
+#if defined(_MSC_VER) && _MSC_VER <= 1900
+#define __func__ __FUNCTION__
+#endif
 
-namespace hamster {
+namespace c10 {
 
 /// The primary ATen error class.
 /// Provides a complete error message with source location information via
@@ -18,9 +24,9 @@ namespace hamster {
 ///
 /// NB: c10::Error is handled specially by the default torch to suppress the
 /// backtrace, see torch/csrc/Exceptions.h
-class Error: public std::exception {
-    std::vector<std::string> msg_stack_;
-    std::string backtrace_;
+class C10_API Error : public std::exception {
+  std::vector<std::string> msg_stack_;
+  std::string backtrace_;
 
   // These two are derived fields from msg_stack_ and backtrace_, but we need
   // fields for the strings so that we can return a const char* (as the
@@ -28,14 +34,14 @@ class Error: public std::exception {
   std::string msg_;
   std::string msg_without_backtrace_;
 
-    // This is a little debugging trick: you can stash a relevant pointer
+  // This is a little debugging trick: you can stash a relevant pointer
   // in caller, and then when you catch the exception, you can compare
   // against pointers you have on hand to get more information about
   // where the exception came from.  In Caffe2, this is used to figure
   // out which operator raised an exception.
   const void* caller_;
 
-  public:
+ public:
   Error(
       const std::string& msg,
       const std::string& backtrace,
@@ -75,8 +81,8 @@ class Error: public std::exception {
   }
 };
 
-class Warning {
-using handler_t =
+class C10_API Warning {
+  using handler_t =
       void (*)(const SourceLocation& source_location, const char* msg);
 
  public:
@@ -95,14 +101,27 @@ using handler_t =
   static handler_t warning_handler_;
 };
 
-} // namespace hamster
+// A utility function to return an exception std::string by prepending its
+// exception type before its what() content
+C10_API std::string GetExceptionString(const std::exception& e);
 
+} // namespace c10
+
+// TODO: variants that print the expression tested and thus don't require
+// strings
+// TODO: CAFFE_ENFORCE_WITH_CALLER style macro
+
+// TODO: move AT_ERROR to C10_ERROR
+// TODO: consolidate the enforce and assert messages. Assert is a bit confusing
+// as c++ assert quits, while this throws.
+// TODO: merge AT_CHECK with AT_ASSERTM. CHECK in fbcode means strict failure if
+// not met.
 
 #define AT_ERROR(...) \
-  throw hamster::Error({__func__, __FILE__, __LINE__}, hamster::str(__VA_ARGS__))
+  throw ::c10::Error({__func__, __FILE__, __LINE__}, ::c10::str(__VA_ARGS__))
 
 #define AT_WARN(...) \
-  hamster::Warning::warn({__func__, __FILE__, __LINE__}, hamster::str(__VA_ARGS__))
+  ::c10::Warning::warn({__func__, __FILE__, __LINE__}, ::c10::str(__VA_ARGS__))
 
 #define AT_ASSERT(cond)                       \
   if (!(cond)) {                              \
@@ -116,7 +135,7 @@ using handler_t =
 
 #define AT_ASSERTM(cond, ...)                 \
   if (!(cond)) {                              \
-    AT_ERROR(hamster::str(                      \
+    AT_ERROR(::c10::str(                      \
         #cond,                                \
         " ASSERT FAILED at ",                 \
         __FILE__,                             \
@@ -128,5 +147,7 @@ using handler_t =
 
 #define AT_CHECK(cond, ...)            \
   if (!(cond)) {                       \
-    AT_ERROR(hamster::str(__VA_ARGS__)); \
+    AT_ERROR(::c10::str(__VA_ARGS__)); \
   }
+
+#endif // C10_UTIL_EXCEPTION_H_

@@ -1,9 +1,9 @@
+#include "TensorTypeIdRegistration.h"
 #include "../utils/C++17.h"
 #include "../utils/Exception.h"
-#include "TensorTypeIdRegistration.h"
 
+namespace c10 {
 
-namespace hamster {
 TensorTypeIds::TensorTypeIds() : creator_(), registry_() {}
 
 TensorTypeIds& TensorTypeIds::singleton() {
@@ -13,7 +13,7 @@ TensorTypeIds& TensorTypeIds::singleton() {
 
 TensorTypeIdCreator::TensorTypeIdCreator() : last_id_(0) {}
 
-hamster::TensorTypeId TensorTypeIdCreator::create() {
+c10::TensorTypeId TensorTypeIdCreator::create() {
   auto id = TensorTypeId(++last_id_);
 
   if (last_id_ == 0) { // overflow happened!
@@ -30,23 +30,23 @@ hamster::TensorTypeId TensorTypeIdCreator::create() {
 
 TensorTypeIdRegistry::TensorTypeIdRegistry() : registeredTypeIds_(), mutex_() {}
 
-void TensorTypeIdRegistry::registerId(hamster::TensorTypeId id) {
+void TensorTypeIdRegistry::registerId(c10::TensorTypeId id) {
   std::lock_guard<std::mutex> lock(mutex_);
   registeredTypeIds_.emplace(id);
 }
 
-void TensorTypeIdRegistry::deregisterId(hamster::TensorTypeId id) {
+void TensorTypeIdRegistry::deregisterId(c10::TensorTypeId id) {
   std::lock_guard<std::mutex> lock(mutex_);
   registeredTypeIds_.erase(id);
 }
 
-hamster::TensorTypeId TensorTypeIds::createAndRegister() {
-  hamster::TensorTypeId id = creator_.create();
+c10::TensorTypeId TensorTypeIds::createAndRegister() {
+  c10::TensorTypeId id = creator_.create();
   registry_.registerId(id);
   return id;
 }
 
-void TensorTypeIds::deregister(hamster::TensorTypeId id) {
+void TensorTypeIds::deregister(c10::TensorTypeId id) {
   registry_.deregisterId(id);
 }
 
@@ -60,5 +60,13 @@ TensorTypeIdRegistrar::~TensorTypeIdRegistrar() {
 C10_DEFINE_TENSOR_TYPE(UndefinedTensorId);
 C10_DEFINE_TENSOR_TYPE(CPUTensorId);
 C10_DEFINE_TENSOR_TYPE(CUDATensorId);
+C10_DEFINE_TENSOR_TYPE(SparseCPUTensorId);
+C10_DEFINE_TENSOR_TYPE(SparseCUDATensorId);
+C10_DEFINE_TENSOR_TYPE(MKLDNNTensorId);
+C10_DEFINE_TENSOR_TYPE(OpenGLTensorId);
+C10_DEFINE_TENSOR_TYPE(OpenCLTensorId);
+C10_DEFINE_TENSOR_TYPE(IDEEPTensorId);
+C10_DEFINE_TENSOR_TYPE(HIPTensorId);
+C10_DEFINE_TENSOR_TYPE(SparseHIPTensorId);
 
-} // namespace hamster
+} // namespace c10

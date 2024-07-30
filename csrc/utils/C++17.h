@@ -1,4 +1,6 @@
 #pragma once
+#ifndef C10_UTIL_CPP17_H_
+#define C10_UTIL_CPP17_H_
 
 #include <type_traits>
 #include <utility>
@@ -6,8 +8,13 @@
 #include <sstream>
 #include <string>
 
-namespace hamster {
-namespace guts {
+/*
+ * This header adds some polyfills with C++14 and C++17 functionality
+ */
+
+namespace c10 { namespace guts {
+
+
 
 #ifdef __cpp_lib_transformation_trait_aliases
 template<bool B, class T, class F> using conditional_t = std::conditional_t<B, T, F>;
@@ -222,9 +229,9 @@ class DummyClassForToString final {};
 namespace std {
 // We use SFINAE to detect if std::to_string exists for a type, but that only works
 // if the function name is defined. So let's define a std::to_string for a dummy type.
-inline std::string to_string(hamster::guts::detail::DummyClassForToString) { return ""; }
+inline std::string to_string(c10::guts::detail::DummyClassForToString) { return ""; }
 }
-namespace hamster { namespace guts { namespace detail {
+namespace c10 { namespace guts { namespace detail {
 
 template<class T, class Enable = void>
 struct to_string_ final {
@@ -246,7 +253,6 @@ template<class T> inline std::string to_string(T value) {
     return detail::to_string_<T>::call(value);
 }
 
-} // namespace guts
+}}
 
-
-} // namespace hamster
+#endif // C10_UTIL_CPP17_H_

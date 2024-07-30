@@ -1,15 +1,15 @@
 #pragma once
+// port from c10/device.h
+#include "DeviceType.h"
+#include "../utils/macros/Macros.h"
+#include "../utils/Exception.h"
 
 #include <cstddef>
 #include <functional>
 #include <iosfwd>
 #include <string>
 
-#include "DeviceType.h"
-#include "../utils/Macros.h"
-#include "../utils/Exception.h"
-
-namespace hamster {
+namespace c10 {
 
 /// An index representing a specific device; e.g., the 1 in GPU 1.
 /// A DeviceIndex is not independently meaningful without knowing
@@ -27,9 +27,10 @@ using DeviceIndex = int16_t;
 /// 1. A negative index represents the current device, a non-negative index
 /// represents a specific, concrete device,
 /// 2. When the device type is CPU, the device index must be zero.
-struct Device final{
-    using Type = DeviceType;
-    /// Constructs a new `Device` from a `DeviceType` and an optional device
+struct C10_API Device final {
+  using Type = DeviceType;
+
+  /// Constructs a new `Device` from a `DeviceType` and an optional device
   /// index.
   /* implicit */ Device(DeviceType type, DeviceIndex index = -1)
       : type_(type), index_(index) {
@@ -42,7 +43,8 @@ struct Device final{
         "CPU device index must be -1 or zero, got ",
         index);
   }
-/// Constructs a `Device` from a string description, for convenience.
+
+  /// Constructs a `Device` from a string description, for convenience.
   /// The string supplied must follow the following schema:
   /// `(cpu|cuda)[:<device-index>]`
   /// where `cpu` or `cuda` specifies the device type, and
@@ -94,23 +96,22 @@ struct Device final{
  private:
   DeviceType type_;
   DeviceIndex index_ = -1;
-
 };
 
-std::ostream& operator<<(
+C10_API std::ostream& operator<<(
     std::ostream& stream,
     const Device& device);
 
-} // namespace hamster
+} // namespace c10
 
 namespace std {
 template <>
-struct hash<hamster::Device> {
-  size_t operator()(hamster::Device d) const noexcept {
+struct hash<c10::Device> {
+  size_t operator()(c10::Device d) const noexcept {
     // Are you here because this static assert failed?  Make sure you ensure
     // that the bitmasking code below is updated accordingly!
-    static_assert(sizeof(hamster::DeviceType) == 2, "DeviceType is not 16-bit");
-    static_assert(sizeof(hamster::DeviceIndex) == 2, "DeviceIndex is not 16-bit");
+    static_assert(sizeof(c10::DeviceType) == 2, "DeviceType is not 16-bit");
+    static_assert(sizeof(c10::DeviceIndex) == 2, "DeviceIndex is not 16-bit");
     // Note [Hazard when concatenating signed integers]
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // We must first convert to a same-sized unsigned type, before promoting to

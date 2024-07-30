@@ -21,7 +21,7 @@
 #pragma once
 
 #include "AlignOf.h"
-#include "Macros.h"
+#include "macros/Macros.h"
 
 #include <algorithm>
 #include <cassert>
@@ -35,7 +35,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace hamster {
+namespace c10 {
 
 namespace detail {
 
@@ -52,9 +52,8 @@ static inline uint64_t NextPowerOf2(uint64_t A) {
 
 } // namespace detail
 
-
 /// This is all the non-templated stuff common to all SmallVectors.
-class SmallVectorBase {
+class C10_API SmallVectorBase {
  protected:
   void *BeginX, *EndX, *CapacityX;
 
@@ -81,7 +80,6 @@ class SmallVectorBase {
     return BeginX == EndX;
   }
 };
-
 
 /// This is the part of SmallVectorTemplateBase which does not depend on whether
 /// the type T is a POD. The extra dummy template argument is used by ArrayRef
@@ -231,7 +229,6 @@ class SmallVectorTemplateCommon : public SmallVectorBase {
     return end()[-1];
   }
 };
-
 
 /// SmallVectorTemplateBase<isPodLike = false> - This is where we put method
 /// implementations that are designed to work with non-POD-like T's.
@@ -1025,33 +1022,29 @@ inline size_t capacity_in_bytes(const SmallVector<T, N>& X) {
 template <typename T, unsigned N>
 std::ostream& operator<<(std::ostream & out, const SmallVector<T, N>& list) {
   int i = 0;
-  std::string beg = "[";
-  std::string end = "]";
-  std::string sep = ", ";
-
-  out << beg;
+  out << "[";
   for(auto e : list) {
     if (i++ > 0)
-      out << sep;
+      out << ", ";
     out << e;
   }
-  out << end;
+  out << "]";
   return out;
 }
 
-} // end namespace hamster
+} // end namespace c10
 
 namespace std {
 
 /// Implement std::swap in terms of SmallVector swap.
 template <typename T>
-inline void swap(hamster::SmallVectorImpl<T>& LHS, hamster::SmallVectorImpl<T>& RHS) {
+inline void swap(c10::SmallVectorImpl<T>& LHS, c10::SmallVectorImpl<T>& RHS) {
   LHS.swap(RHS);
 }
 
 /// Implement std::swap in terms of SmallVector swap.
 template <typename T, unsigned N>
-inline void swap(hamster::SmallVector<T, N>& LHS, hamster::SmallVector<T, N>& RHS) {
+inline void swap(c10::SmallVector<T, N>& LHS, c10::SmallVector<T, N>& RHS) {
   LHS.swap(RHS);
 }
 

@@ -1,38 +1,44 @@
-#pragma once
+#ifndef C10_UTIL_STRINGUTIL_H_
+#define C10_UTIL_STRINGUTIL_H_
 
-#include "Macros.h"
+#include "macros/Macros.h"
+#include "string_utils.h"
 
-// #include <cstddef>
+#include <cstddef>
 #include <ostream>
 #include <sstream>
 #include <string>
 #include <vector>
 
-namespace hamster {
+namespace c10 {
+
+namespace detail {
 
 // Obtains the base name from a full path.
-std::string StripBasename(const std::string& full_path);
+C10_API std::string StripBasename(const std::string& full_path);
 
 inline std::ostream& _str(std::ostream& ss) {
   return ss;
 }
 
-template<typename T>
+template <typename T>
 inline std::ostream& _str(std::ostream& ss, const T& t) {
-    ss << t;
-    return ss;
+  ss << t;
+  return ss;
 }
 
-template<typename T, typename... Args>
+template <typename T, typename... Args>
 inline std::ostream& _str(std::ostream& ss, const T& t, const Args&... args) {
-    return _str(_str(ss, t), args...);
+  return _str(_str(ss, t), args...);
 }
+
+} // namespace detail
 
 // Convert a list of string-like arguments into a single string.
 template <typename... Args>
 inline std::string str(const Args&... args) {
   std::ostringstream ss;
-  _str(ss, args...);
+  detail::_str(ss, args...);
   return ss.str();
 }
 
@@ -57,10 +63,10 @@ inline std::string Join(const std::string& delimiter, const Container& v) {
 
 // Replace all occurrences of "from" substring to "to" string.
 // Returns number of replacements
-size_t ReplaceAll(std::string& s, const char* from, const char* to);
+size_t C10_API ReplaceAll(std::string& s, const char* from, const char* to);
 
 /// Represents a location in source code (for debugging).
-struct SourceLocation {
+struct C10_API SourceLocation {
   const char* function;
   const char* file;
   uint32_t line;
@@ -68,13 +74,6 @@ struct SourceLocation {
 
 std::ostream& operator<<(std::ostream& out, const SourceLocation& loc);
 
-inline int stoi(const std::string& str) {
-  std::stringstream ss;
-  int n = 0;
-  ss << str;
-  ss >> n;
-  return n;
-}
+} // namespace c10
 
-
-} // namespace hamster
+#endif // C10_UTIL_STRINGUTIL_H_

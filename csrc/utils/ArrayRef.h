@@ -14,6 +14,7 @@
 // removed a bunch of slice variants for simplicity...
 
 #pragma once
+
 #include "SmallVector.h"
 #include "C++17.h"
 #include "Exception.h"
@@ -22,7 +23,7 @@
 #include <iterator>
 #include <vector>
 
-namespace hamster {
+namespace c10 {
 
 /// ArrayRef - Represent a constant reference to an array (0 or more elements
 /// consecutively in memory), i.e. a start pointer and a length.  It allows
@@ -235,35 +236,35 @@ std::ostream& operator<<(std::ostream & out, ArrayRef<T> list) {
 // many overloads.
 
 template <typename T>
-bool operator==(hamster::ArrayRef<T> a1, hamster::ArrayRef<T> a2) {
+bool operator==(c10::ArrayRef<T> a1, c10::ArrayRef<T> a2) {
   return a1.equals(a2);
 }
 
 template <typename T>
-bool operator!=(hamster::ArrayRef<T> a1, hamster::ArrayRef<T> a2) {
+bool operator!=(c10::ArrayRef<T> a1, c10::ArrayRef<T> a2) {
   return !a1.equals(a2);
 }
 
 template <typename T>
-bool operator==(std::vector<T> a1, hamster::ArrayRef<T> a2) {
-  return hamster::ArrayRef<T>(a1).equals(a2);
+bool operator==(std::vector<T> a1, c10::ArrayRef<T> a2) {
+  return c10::ArrayRef<T>(a1).equals(a2);
 }
 
 template <typename T>
-bool operator!=(std::vector<T> a1, hamster::ArrayRef<T> a2) {
-  return !hamster::ArrayRef<T>(a1).equals(a2);
+bool operator!=(std::vector<T> a1, c10::ArrayRef<T> a2) {
+  return !c10::ArrayRef<T>(a1).equals(a2);
 }
 
 template <typename T>
-bool operator==(hamster::ArrayRef<T> a1, std::vector<T> a2) {
-  return a1.equals(hamster::ArrayRef<T>(a2));
+bool operator==(c10::ArrayRef<T> a1, std::vector<T> a2) {
+  return a1.equals(c10::ArrayRef<T>(a2));
 }
 
 template <typename T>
-bool operator!=(hamster::ArrayRef<T> a1, std::vector<T> a2) {
-  return !a1.equals(hamster::ArrayRef<T>(a2));
+bool operator!=(c10::ArrayRef<T> a1, std::vector<T> a2) {
+  return !a1.equals(c10::ArrayRef<T>(a2));
 }
 
 using IntList = ArrayRef<int64_t>;
 
-} // namespace hamster
+} // namespace c10

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TENSOR_TYPE_ID_REGISTRATION_H_
+#define TENSOR_TYPE_ID_REGISTRATION_H_
 
 /**
  * To register your own tensor types, do in a header file:
@@ -8,22 +9,23 @@
  * Both must be in the same namespace.
  */
 
-#include "../utils/Macros.h"
+#include "../utils/macros/Macros.h"
 #include "TensorTypeId.h"
 
 #include <atomic>
 #include <mutex>
 #include <unordered_set>
 
-namespace hamster {
-class TensorTypeIdCreator final {
+namespace c10 {
+
+class C10_API TensorTypeIdCreator final {
  public:
   TensorTypeIdCreator();
 
-  hamster::TensorTypeId create();
+  c10::TensorTypeId create();
 
-  static constexpr hamster::TensorTypeId undefined() noexcept {
-    return hamster::TensorTypeId(0);
+  static constexpr c10::TensorTypeId undefined() noexcept {
+    return c10::TensorTypeId(0);
   }
 
  private:
@@ -32,30 +34,28 @@ class TensorTypeIdCreator final {
   C10_DISABLE_COPY_AND_ASSIGN(TensorTypeIdCreator);
 };
 
-
-class TensorTypeIdRegistry final {
+class C10_API TensorTypeIdRegistry final {
  public:
   TensorTypeIdRegistry();
 
-  void registerId(hamster::TensorTypeId id);
-  void deregisterId(hamster::TensorTypeId id);
+  void registerId(c10::TensorTypeId id);
+  void deregisterId(c10::TensorTypeId id);
 
  private:
-  std::unordered_set<hamster::TensorTypeId> registeredTypeIds_;
+  std::unordered_set<c10::TensorTypeId> registeredTypeIds_;
   std::mutex mutex_;
 
   C10_DISABLE_COPY_AND_ASSIGN(TensorTypeIdRegistry);
 };
 
-
-class TensorTypeIds final {
+class C10_API TensorTypeIds final {
  public:
   static TensorTypeIds& singleton();
 
-  hamster::TensorTypeId createAndRegister();
-  void deregister(hamster::TensorTypeId id);
+  c10::TensorTypeId createAndRegister();
+  void deregister(c10::TensorTypeId id);
 
-  static constexpr hamster::TensorTypeId undefined() noexcept;
+  static constexpr c10::TensorTypeId undefined() noexcept;
 
  private:
   TensorTypeIds();
@@ -66,33 +66,32 @@ class TensorTypeIds final {
   C10_DISABLE_COPY_AND_ASSIGN(TensorTypeIds);
 };
 
-inline constexpr hamster::TensorTypeId TensorTypeIds::undefined() noexcept {
+inline constexpr c10::TensorTypeId TensorTypeIds::undefined() noexcept {
   return TensorTypeIdCreator::undefined();
 }
 
-class TensorTypeIdRegistrar final {
+class C10_API TensorTypeIdRegistrar final {
  public:
   TensorTypeIdRegistrar();
   ~TensorTypeIdRegistrar();
 
-  hamster::TensorTypeId id() const noexcept;
+  c10::TensorTypeId id() const noexcept;
 
  private:
-  hamster::TensorTypeId id_;
+  c10::TensorTypeId id_;
 
   C10_DISABLE_COPY_AND_ASSIGN(TensorTypeIdRegistrar);
 };
 
-inline hamster::TensorTypeId TensorTypeIdRegistrar::id() const noexcept {
+inline c10::TensorTypeId TensorTypeIdRegistrar::id() const noexcept {
   return id_;
 }
 
-
 #define C10_DECLARE_TENSOR_TYPE(TensorName) \
-  hamster::TensorTypeId TensorName()
+  C10_API c10::TensorTypeId TensorName()
 
 #define C10_DEFINE_TENSOR_TYPE(TensorName)          \
-  hamster::TensorTypeId TensorName() {                  \
+  c10::TensorTypeId TensorName() {                  \
     static TensorTypeIdRegistrar registration_raii; \
     return registration_raii.id();                  \
   }
@@ -109,4 +108,6 @@ C10_DECLARE_TENSOR_TYPE(IDEEPTensorId); // Caffe2 only
 C10_DECLARE_TENSOR_TYPE(HIPTensorId); // PyTorch/Caffe2 supported
 C10_DECLARE_TENSOR_TYPE(SparseHIPTensorId); // PyTorch only
 
-}
+} // namespace c10
+
+#endif // TENSOR_TYPE_ID_REGISTRATION_H_
