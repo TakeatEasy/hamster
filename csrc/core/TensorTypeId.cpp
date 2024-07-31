@@ -1,5 +1,5 @@
-#include "TensorTypeId.h"
-#include "../utils/string_utils.h"
+#include "csrc/core/TensorTypeId.h"
+#include "csrc/utils/string_utils.h"
 
 namespace c10 {
 

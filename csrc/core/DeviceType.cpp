@@ -1,5 +1,5 @@
-#include "DeviceType.h"
-#include "../utils/Exception.h"
+#include "csrc/core/DeviceType.h"
+#include "csrc/utils/Exception.h"
 
 namespace c10 {
 

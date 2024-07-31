@@ -1,6 +1,6 @@
-#include "Device.h"
-#include "../utils/macros/Macros.h"
-#include "../utils/Exception.h"
+#include "csrc/core/Device.h"
+#include "csrc/utils/macros/Macros.h"
+#include "csrc/utils/Exception.h"
 
 #include <algorithm>
 #include <array>

@@ -7,4 +7,14 @@ add_library(csrc_core SHARED
                     Scalar.cpp
                     Allocator.cpp
                     StorageImpl.cpp
-                    Storage.cpp)
+                    Storage.cpp
+                    DefaultDtype.cpp
+                    TensorOptions.cpp
+                    context_base.cpp
+                    TensorImpl.cpp
+                    UndefinedTensorImpl.cpp
+                    Tensor.cpp
+                    TensorMethods.cpp
+                    Formatting.cpp
+                    LegacyTypeDispatch.cpp
+                    VariableHooksInterface.cpp)

@@ -8,4 +8,7 @@ add_library(csrc_utils SHARED StringUtil.cpp
                                 Backtrace.cpp
                                 typeid.cpp
                                 UniqueVoidPtr.cpp
-                                intrusive_ptr.cpp)
+                                intrusive_ptr.cpp
+                                Logging.cpp
+                                flags_use_no_gflags.cpp
+                                Exception.cpp)

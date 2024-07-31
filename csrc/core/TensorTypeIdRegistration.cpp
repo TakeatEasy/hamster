@@ -1,6 +1,6 @@
-#include "TensorTypeIdRegistration.h"
-#include "../utils/C++17.h"
-#include "../utils/Exception.h"
+#include "csrc/core/TensorTypeIdRegistration.h"
+#include "csrc/utils/C++17.h"
+#include "csrc/utils/Exception.h"
 
 namespace c10 {
 
